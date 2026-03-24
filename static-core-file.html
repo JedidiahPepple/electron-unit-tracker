@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Electron Power Tracker</title>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<style>
+  :root {
+    --bg:#0f172a; --card:#111827; --muted:#9ca3af; --text:#e5e7eb;
+    --accent:#22c55e; --warn:#f59e0b; --danger:#ef4444; --border:#1f2937;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:var(--bg);color:var(--text);display:flex;justify-content:center;align-items:center;
+    min-height:100vh;padding:16px;transition:all .3s ease;}
+  .app{width:100%;max-width:420px;background:var(--card);border:1px solid var(--border);
+    border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:all .3s ease;}
+  h1{margin:0 0 4px;font-size:20px;}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:14px;}
+  label{font-size:12px;color:var(--muted);}
+  input{width:100%;padding:12px;margin:6px 0 12px;border-radius:10px;border:1px solid var(--border);
+    background:#020617;color:var(--text);outline:none;transition:all .2s;}
+  input:focus{border-color:#334155;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn{flex:1;padding:12px;border:none;border-radius:10px;background:var(--accent);
+    color:#022c22;font-weight:600;cursor:pointer;transition:all .2s;}
+  .btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border);}
+  .result{margin-top:14px;padding:14px;border-radius:12px;background:var(--card);
+    border:1px solid var(--border);transition:all .3s;}
+  .big{font-size:22px;font-weight:700;margin:6px 0;}
+  .muted{color:var(--muted);font-size:12px;}
+  .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;margin-top:6px;}
+  .ok{background:rgba(34,197,94,.15);color:#22c55e;}
+  .warn{background:rgba(245,158,11,.15);color:#f59e0b;}
+  .danger{background:rgba(239,68,68,.15);color:#ef4444;}
+  .footer{margin-top:10px;font-size:11px;color:var(--muted);text-align:center;}
+  .tabs{display:flex;gap:6px;margin-bottom:16px;background:#020617;border-radius:10px;padding:4px;}
+  .tab{flex:1;padding:9px;border:none;border-radius:8px;font-size:12px;font-weight:600;
+    cursor:pointer;background:transparent;color:var(--muted);transition:all .2s;}
+  .tab.active{background:var(--card);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.4);}
+  .result-row{display:flex;justify-content:space-between;align-items:center;
+    padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .result-row:last-child{border-bottom:none;}
+  .result-label{color:var(--muted);}
+  .result-val{font-weight:600;}
+  .highlight{color:var(--accent);font-size:20px;font-weight:700;}
+  body.lightMode{background:#f3f4f6;color:#111827;}
+  body.lightMode .app{background:#fff;color:#111827;border:1px solid #d1d5db;}
+  body.lightMode input{background:#f9fafb;color:#111827;border:1px solid #d1d5db;}
+  body.lightMode .tabs{background:#e5e7eb;}
+  body.lightMode .tab.active{background:#fff;color:#111827;}
+  body.lightMode .result{background:#f9fafb;}
+  body.lightMode .result-row{border-color:#e5e7eb;}
+  body.lightMode .badge.ok{background:#d1fae5;color:#16a34a;}
+  body.lightMode .badge.warn{background:#fef3c7;color:#b45309;}
+  body.lightMode .badge.danger{background:#fee2e2;color:#b91c1c;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <h1>Electron Power Tracker</h1>
+  <div class="sub">Manage your prepaid electricity smarter</div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab1" onclick="switchTab(1)">How long will it last?</button>
+    <button class="tab" id="tab2" onclick="switchTab(2)">How much should I buy?</button>
+  </div>
+
+  <!-- Tab 1: Units → Days -->
+  <div id="page1">
+    <label>Units Available</label>
+    <input id="units" type="number" placeholder="e.g. 100"/>
+    <label>Estimated Daily Usage (units/day)</label>
+    <input id="daily" type="number" placeholder="e.g. 10"/>
+    <label>Cost per Unit (₦) — optional</label>
+    <input id="cost" type="number" placeholder="e.g. 75"/>
+    <div class="row">
+      <button class="btn" onclick="calculate()">Calculate</button>
+      <button class="btn secondary" onclick="toggleTheme()">🌗 Theme</button>
+    </div>
+    <div id="result1" style="display:none;" class="result">
+      <div class="result-row">
+        <span class="result-label">Days remaining</span>
+        <span class="result-val highlight" id="r1days">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Status</span>
+        <span id="r1status"></span>
+      </div>
+      <div class="result-row" id="r1costRow" style="display:none;">
+        <span class="result-label">Daily spend</span>
+        <span class="result-val" id="r1cost">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Days → Units to buy -->
+  <div id="page2" style="display:none;">
+    <label>How many days do you want it to last?</label>
+    <input id="targetDays" type="number" placeholder="e.g. 30"/>
+    <label>Estimated Daily Usage (units/day)</label>
+    <input id="daily2" type="number" placeholder="e.g. 10"/>
+    <label>Cost per Unit (₦) — optional</label>
+    <input id="cost2" type="number" placeholder="e.g. 75"/>
+    <div class="row">
+      <button class="btn" onclick="calculateBuy()">Calculate</button>
+      <button class="btn secondary" onclick="toggleTheme()">🌗 Theme</button>
+    </div>
+    <div id="result2" style="display:none;" class="result">
+      <div class="result-row">
+        <span class="result-label">Units to buy</span>
+        <span class="result-val highlight" id="r2units">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Target duration</span>
+        <span class="result-val" id="r2days">—</span>
+      </div>
+      <div class="result-row" id="r2costRow" style="display:none;">
+        <span class="result-label">Estimated total cost</span>
+        <span class="result-val" id="r2cost">—</span>
+      </div>
+      <div class="result-row" id="r2dailyRow" style="display:none;">
+        <span class="result-label">Daily spend</span>
+        <span class="result-val" id="r2daily">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Electron Power Tracker • Offline capable</div>
+
+</div>
+
+<script>
+function switchTab(n){
+  document.getElementById('page1').style.display = n===1 ? 'block' : 'none';
+  document.getElementById('page2').style.display = n===2 ? 'block' : 'none';
+  document.getElementById('tab1').classList.toggle('active', n===1);
+  document.getElementById('tab2').classList.toggle('active', n===2);
+}
+
+function toggleTheme(){
+  document.body.classList.toggle('lightMode');
+}
+
+function calculate(){
+  const units = parseFloat(document.getElementById('units').value);
+  const daily = parseFloat(document.getElementById('daily').value);
+  const cost  = parseFloat(document.getElementById('cost').value);
+  const box   = document.getElementById('result1');
+
+  if(!units || !daily || units <= 0 || daily <= 0){
+    box.style.display = 'block';
+    document.getElementById('r1days').innerText = '—';
+    document.getElementById('r1status').innerHTML = '<span class="badge danger">Enter valid values</span>';
+    document.getElementById('r1costRow').style.display = 'none';
+    return;
+  }
+
+  const days = units / daily;
+  document.getElementById('r1days').innerText = days.toFixed(1) + ' days';
+
+  const s = document.getElementById('r1status');
+  if(days <= 1)      s.innerHTML = '<span class="badge danger">Critical — recharge now</span>';
+  else if(days <= 3) s.innerHTML = '<span class="badge warn">Low — recharge soon</span>';
+  else               s.innerHTML = '<span class="badge ok">Stable</span>';
+
+  if(cost > 0){
+    document.getElementById('r1costRow').style.display = 'flex';
+    document.getElementById('r1cost').innerText = '₦' + (daily * cost).toFixed(0);
+  } else {
+    document.getElementById('r1costRow').style.display = 'none';
+  }
+
+  box.style.display = 'block';
+}
+
+function calculateBuy(){
+  const days  = parseFloat(document.getElementById('targetDays').value);
+  const daily = parseFloat(document.getElementById('daily2').value);
+  const cost  = parseFloat(document.getElementById('cost2').value);
+  const box   = document.getElementById('result2');
+
+  if(!days || !daily || days <= 0 || daily <= 0){
+    box.style.display = 'block';
+    document.getElementById('r2units').innerText = '—';
+    document.getElementById('r2days').innerText  = 'Enter valid values';
+    document.getElementById('r2costRow').style.display  = 'none';
+    document.getElementById('r2dailyRow').style.display = 'none';
+    return;
+  }
+
+  const units = days * daily;
+  document.getElementById('r2units').innerText = units.toFixed(0) + ' units';
+  document.getElementById('r2days').innerText  = days + ' days';
+
+  if(cost > 0){
+    document.getElementById('r2costRow').style.display  = 'flex';
+    document.getElementById('r2dailyRow').style.display = 'flex';
+    document.getElementById('r2cost').innerText  = '₦' + (units * cost).toFixed(0);
+    document.getElementById('r2daily').innerText = '₦' + (daily * cost).toFixed(0);
+  } else {
+    document.getElementById('r2costRow').style.display  = 'none';
+    document.getElementById('r2dailyRow').style.display = 'none';
+  }
+
+  box.style.display = 'block';
+}
+</script>
+</body>
+</html>
