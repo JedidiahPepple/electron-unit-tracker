@@ -79,3 +79,5 @@ Daily spend    = Daily usage × Cost per unit
 - Directly recharge meter with provided meter number and a cash wallet feature to fund tokens.
 - Auto recharge units when meter is predicted to be extremely low on units (only applicable if the setting is turned on).
 - Export to app store as a standalone app.
+
+Live preview here : https://electron-unit-tracker.netlify.app/
