@@ -48,7 +48,7 @@ Step 2 — Pick a tab at the top depending on what you want to find out:
 
 Step 3 — Fill in the fields. The cost per unit is optional, you can skip it if you just want to know the days or units without the money breakdown.
 
-Step 4 — Hit Calculate. Your result appears right below.
+Step 4 — Hit Calculate. Your result will be generated.
 
 Step 5 — Use the 🌗 Theme button to switch between dark and light mode, whichever is easier on your eyes.
 Technical details (for the curious)
