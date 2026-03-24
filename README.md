@@ -40,24 +40,32 @@ Your daily spend (if you entered a cost)
 ## How to use it
 
 Step 1 — Open the app in your browser.
+
 Step 2 — Pick a tab at the top depending on what you want to find out:
+
 "How long will it last?" if you already have units and want to know how many days they'll cover
 "How much should I buy?" if you want to plan ahead for a specific number of days
-Step 3 — Fill in the fields. The cost per unit is optional — skip it if you just want to know the days or units without the money breakdown.
+
+Step 3 — Fill in the fields. The cost per unit is optional, you can skip it if you just want to know the days or units without the money breakdown.
+
 Step 4 — Hit Calculate. Your result appears right below.
+
 Step 5 — Use the 🌗 Theme button to switch between dark and light mode, whichever is easier on your eyes.
 Technical details (for the curious)
 Built with plain HTML, CSS, and JavaScript , no frameworks or dependencies were used.
+
 Runs entirely in the browser; nothing is sent to any server
 Works offline once loaded
+
 Mobile-friendly layout that fits any screen size
 Dark mode and light mode supported
-Calculations explained
+
+##### Calculations explained
 How long will it last?
 Days remaining = Units available ÷ Daily usage
 Daily spend    = Daily usage × Cost per unit
 
-How many units to buy?
+##### How many units to buy?
 Units to buy   = Target days × Daily usage
 Total cost     = Units to buy × Cost per unit
 Daily spend    = Daily usage × Cost per unit
